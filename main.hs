@@ -47,8 +47,8 @@ constroi_tabuleiro (l1,l2,l3,l4,l5,l6,l7,l8)
  | otherwise = error "Tabuleiro Inválido!"
 
 Arremesso :: Tabuleiro -> Jogador -> Tabuleiro
-Arremesso Tabuleiro (a, b, c, d)
-  | c == 'S' && Bomba `elem` (Tabuleiro !! fst b+1) !! snd b  = 
-  | c == 'N' && Bomba `elem` (Tabuleiro !! fst b-1) !! snd b =
-  | c == 'L' && Bomba `elem` (Tabuleiro !! fst b) !! snd b+1 =
-  | c == 'O' && Bomba `elem` (Tabuleiro !! fst b) !! snd b-1 =
+Arremesso (l1,l2,l3,l4,l5,l6,l7,l8) (a, b, c, d)
+  | c == 'S' && Bomba `elem` ((l1,l2,l3,l4,l5,l6,l7,l8) !! fst b+1) !! snd b =
+  | c == 'N' && Bomba `elem` ((l1,l2,l3,l4,l5,l6,l7,l8) !! fst b-1) !! snd b =
+  | c == 'L' && Bomba `elem` ((l1,l2,l3,l4,l5,l6,l7,l8) !! fst b) !! snd b+1 =
+  | c == 'O' && Bomba `elem` ((l1,l2,l3,l4,l5,l6,l7,l8) !! fst b) !! snd b-1 =
