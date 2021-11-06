@@ -119,7 +119,7 @@ movimentarO (a, (b1, b2), c, d)
 
 movimentarL :: Jogador -> Jogador
 movimentarL (a, (b1, b2), c, d)
-  | b2 < 7 && head (pegaLinha tabuleiroPadrao b2 (b1 + 1)) /= Parede && head (pegaLinha tabuleiroPadrao b2 (b1 + 1)) /= Bomba = (a, (b1 + 1, b2), c, d)
+  | b1 < 7 && head (pegaLinha tabuleiroPadrao b2 (b1 + 1)) /= Parede && head (pegaLinha tabuleiroPadrao b2 (b1 + 1)) /= Bomba = (a, (b1 + 1, b2), c, d)
   | otherwise = error "Movimento Inválido"
 
 movimentar :: Jogador -> Direcao -> Jogador
@@ -139,13 +139,73 @@ pegaLinha tabuleiro linha cel
   | linha == 1 = pegaCelula (head tabuleiro) cel
   | otherwise = pegaLinha (tail tabuleiro) (linha-1) cel
 
-{-
 
-Arremesso :: Tabuleiro -> Jogador -> Tabuleiro
-Arremesso (l1,l2,l3,l4,l5,l6,l7,l8) (a, b, c, d)
-  | c == 'S' && Bomba `elem` ((l1,l2,l3,l4,l5,l6,l7,l8) !! fst b+1) !! snd b =
-  | c == 'N' && Bomba `elem` ((l1,l2,l3,l4,l5,l6,l7,l8) !! fst b-1) !! snd b =
-  | c == 'L' && Bomba `elem` ((l1,l2,l3,l4,l5,l6,l7,l8) !! fst b) !! snd b+1 =
-  | c == 'O' && Bomba `elem` ((l1,l2,l3,l4,l5,l6,l7,l8) !! fst b) !! snd b-1 =
+colocaBomba :: Item -> Celula -> Celula
+colocaBomba x l
+  | x == Bomba && l == [Grama] = x:l
+  | l == [] = []
+  | otherwise = l
 
--}
+
+contadorCasas :: Tabuleiro -> Direcao -> Cordenada -> Int
+contadorCasas t d c
+  | d == N = contadorCasasN t c
+  | d == S = contadorCasasS t c
+  | d == L = contadorCasasL t c
+  | d == O = contadorCasasO t c
+
+
+contadorCasasN :: Tabuleiro -> Cordenada -> Int
+contadorCasasN t (x,y)
+  | x == 2 = 0
+  | otherwise = 1 + contadorCasasN t (x-1,y)
+
+contadorCasasS :: Tabuleiro -> Cordenada -> Int
+contadorCasasS t (x,y)
+  | x == 7 = 0
+  | otherwise = 1 + contadorCasasS t (x+1,y)
+
+contadorCasasL :: Tabuleiro -> Cordenada -> Int
+contadorCasasL t (x,y)
+  | y == 7 = 0
+  | otherwise = 1 + contadorCasasL t (x,y+1)
+
+contadorCasasO :: Tabuleiro -> Cordenada -> Int
+contadorCasasO t (x,y)
+  | y == 2 = 0
+  | otherwise = 1 + contadorCasasO t (x,y-1)
+
+
+
+arremessaBomba :: Tabuleiro -> Jogador -> Int
+arremessaBomba t (a, (b1, b2), c, d)
+  | c == S = arremessaBombaS t (a, (b1, b2), c, d)
+  | c == N = arremessaBombaN t (a, (b1, b2), c, d)
+  | c == O = arremessaBombaO t (a, (b1, b2), c, d)
+  | c == L = arremessaBombaL t (a, (b1, b2), c, d)
+
+
+arremessaBombaS :: Tabuleiro -> Jogador -> Int
+arremessaBombaS t (a, (b1, b2), c, (_,(bomb, qntd),_))
+  | b2 < 7 && head (pegaLinha tabuleiroPadrao (b2 + 1) b1) == Bomba && qntd > (contadorCasas t S (b1,b2)) = contadorCasas t S (b1,b2)
+  | b2 < 7 && head (pegaLinha tabuleiroPadrao (b2 + 1) b1) == Bomba && qntd <= contadorCasas t S (b1,b2) = qntd
+  | otherwise = error "Não foi possivel arremessar."
+
+arremessaBombaN :: Tabuleiro -> Jogador -> Int
+arremessaBombaN t (a, (b1, b2), c, (_,(bomb, qntd),_))
+  | b2 > 2 && head (pegaLinha tabuleiroPadrao (b2 - 1) b1) == Bomba && qntd > (contadorCasas t N (b1,b2)) = contadorCasas t N (b1,b2)
+  | b2 > 2 && head (pegaLinha tabuleiroPadrao (b2 - 1) b1) == Bomba && qntd <= (contadorCasas t N (b1,b2)) = qntd
+  | otherwise = error "Não foi possivel arremessar."
+
+arremessaBombaO :: Tabuleiro -> Jogador -> Int
+arremessaBombaO t (a, (b1, b2), c, (_,(bomb, qntd),_))
+  | b2 < 7 && head (pegaLinha tabuleiroPadrao (b2 + 1) b1) == Bomba && qntd > (contadorCasas t O (b1,b2)) = contadorCasas t O (b1,b2)
+  | b2 < 7 && head (pegaLinha tabuleiroPadrao (b2 + 1) b1) == Bomba && qntd <= (contadorCasas t O (b1,b2)) = qntd
+  | otherwise = error "Não foi possivel arremessar."
+
+arremessaBombaL :: Tabuleiro -> Jogador -> Int
+arremessaBombaL t (a, (b1, b2), c, (_,(bomb, qntd),_))
+  | b2 < 7 && head (pegaLinha tabuleiroPadrao (b2 + 1) b1) == Bomba && qntd > (contadorCasas t L (b1,b2)) = contadorCasas t L (b1,b2)
+  | b2 < 7 && head (pegaLinha tabuleiroPadrao (b2 + 1) b1) == Bomba && qntd <= (contadorCasas t L (b1,b2)) = qntd
+  | otherwise = error "Não foi possivel arremessar."
+
